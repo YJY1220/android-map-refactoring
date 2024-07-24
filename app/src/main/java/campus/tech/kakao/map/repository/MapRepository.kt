@@ -1,6 +1,6 @@
 package campus.tech.kakao.map.repository
 
-import campus.tech.kakao.map.dao.MapItemDao
+import campus.tech.kakao.map.database.MapItemDao
 import campus.tech.kakao.map.network.KakaoApiService
 import campus.tech.kakao.map.model.MapItem
 import kotlinx.coroutines.Dispatchers
