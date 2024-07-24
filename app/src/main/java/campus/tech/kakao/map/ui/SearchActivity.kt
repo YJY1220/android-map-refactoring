@@ -6,7 +6,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import campus.tech.kakao.map.databinding.ActivitySearchBinding
-import androidx.lifecycle.ViewModelProvider
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,12 +16,15 @@ import campus.tech.kakao.map.viewmodel.MapViewModel
 import campus.tech.kakao.map.R
 import campus.tech.kakao.map.util.SQLiteHelper
 import campus.tech.kakao.map.model.MapItem
-import campus.tech.kakao.map.repository.MapRepositoryImpl
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SearchActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySearchBinding
     private lateinit var sqLiteHelper: SQLiteHelper
+    @Inject
     lateinit var viewModel: MapViewModel
     private lateinit var searchAdapter: SearchAdapter
     private lateinit var selectedAdapter: SelectedAdapter
@@ -34,10 +36,6 @@ class SearchActivity : AppCompatActivity() {
 
         sqLiteHelper = SQLiteHelper(this)
         sqLiteHelper.writableDatabase
-
-        val repository = MapRepositoryImpl(application)
-        val viewModelFactory = MapViewModelFactory(application, repository)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(MapViewModel::class.java)
 
         setupRecyclerViews()
         setupSearchEditText()
@@ -110,7 +108,6 @@ class SearchActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.searchResults.observe(this, Observer { results ->
             searchAdapter.submitList(results)
-
             binding.noResultsTextView.visibility = if (results.isEmpty() && !viewModel.searchQuery.value.isNullOrEmpty()) View.VISIBLE else View.GONE
             binding.searchResultsRecyclerView.visibility = if (results.isEmpty()) View.GONE else View.VISIBLE
         })

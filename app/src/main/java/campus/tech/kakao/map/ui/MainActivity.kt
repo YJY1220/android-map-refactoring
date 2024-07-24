@@ -1,18 +1,12 @@
 package campus.tech.kakao.map.ui
 
-
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import com.kakao.vectormap.MapView
-import com.kakao.vectormap.MapLifeCycleCallback
-import com.kakao.vectormap.KakaoMapReadyCallback
-import com.kakao.vectormap.KakaoMap
-
+import com.kakao.vectormap.*
 import android.view.View
 import android.widget.ImageButton
 import android.widget.RelativeLayout
@@ -21,8 +15,8 @@ import android.app.Activity
 import android.widget.FrameLayout
 import campus.tech.kakao.map.R
 import campus.tech.kakao.map.model.MapItem
+import campus.tech.kakao.map.viewmodel.MapViewModel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.label.LabelLayer
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
@@ -30,11 +24,12 @@ import com.kakao.vectormap.label.LabelStyles
 import com.kakao.vectormap.label.LabelTextStyle
 import com.kakao.vectormap.camera.CameraAnimation
 import com.kakao.vectormap.camera.CameraUpdateFactory
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    lateinit var viewModelFactory: MapViewModelFactory
     private lateinit var mapView: MapView
     private lateinit var errorLayout: RelativeLayout
     private lateinit var errorMessage: TextView
@@ -57,37 +52,30 @@ class MainActivity : AppCompatActivity() {
         const val PREF_ROAD_ADDRESS_NAME = "lastRoadAddressName"
     }
 
+    @Inject
+    lateinit var viewModel: MapViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 카카오 지도 초기화
         mapView = findViewById(R.id.map_view)
         mapView.start(object : MapLifeCycleCallback() {
-            override fun onMapDestroy() {
-                // 지도 API가 정상적으로 종료될 때 호출됨
-            }
-
+            override fun onMapDestroy() {}
             override fun onMapError(error: Exception) {
-
                 showErrorScreen(error)
             }
         }, object : KakaoMapReadyCallback() {
             override fun onMapReady(map: KakaoMap) {
                 kakaoMap = map
                 labelLayer = kakaoMap.labelManager?.layer!!
-                // 마지막 마커 위치 불러오기
                 loadLastMarkerPosition()
-
             }
         })
 
-        // 검색창 클릭 시 검색 페이지로 이동
         val searchEditText = findViewById<EditText>(R.id.search_edit_text)
         searchEditText.setOnClickListener {
             val intent = Intent(this, SearchActivity::class.java)
-
             intent.putExtra("selectedItemsSize", selectedItems.size)
             selectedItems.forEachIndexed { index, mapItem ->
                 intent.putExtra("id_$index", mapItem.id)
@@ -98,23 +86,18 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, SEARCH_REQUEST_CODE)
         }
 
-        // 에러 화면 초기화
         errorLayout = findViewById(R.id.error_layout)
         errorMessage = findViewById(R.id.error_message)
         errorDetails = findViewById(R.id.error_details)
         retryButton = findViewById(R.id.retry_button)
 
-        // BottomSheet 초기화
         bottomSheetLayout = findViewById(R.id.bottomSheetLayout)
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout)
         bottomSheetTitle = findViewById(R.id.bottomSheetTitle)
         bottomSheetAddress = findViewById(R.id.bottomSheetAddress)
-
-        // 처음에는 BottomSheet 숨기기
         bottomSheetLayout.visibility = View.GONE
     }
 
-    // 지도 -> 검색페이지 돌아갈 때 저장된 검색어 목록 그대로 저장
     private fun processIntentData() {
         val placeName = intent.getStringExtra("place_name")
         val roadAddressName = intent.getStringExtra("road_address_name")
@@ -122,19 +105,17 @@ class MainActivity : AppCompatActivity() {
         val y = intent.getDoubleExtra("y", 0.0)
         if (placeName != null && roadAddressName != null) {
             addLabel(placeName, roadAddressName, x, y)
-
         }
     }
 
     override fun onResume() {
         super.onResume()
-        mapView.resume()  // MapView의 resume 호출
+        mapView.resume()
     }
 
     override fun onPause() {
         super.onPause()
-        mapView.pause()  // MapView의 pause 호출
-
+        mapView.pause()
     }
 
     fun showErrorScreen(error: Exception) {
@@ -146,11 +127,8 @@ class MainActivity : AppCompatActivity() {
     fun onRetryButtonClick(view: View) {
         errorLayout.visibility = View.GONE
         mapView.visibility = View.VISIBLE
-        // 지도 다시 시작
         mapView.start(object : MapLifeCycleCallback() {
-            override fun onMapDestroy() {
-            }
-
+            override fun onMapDestroy() {}
             override fun onMapError(error: Exception) {
                 showErrorScreen(error)
             }
@@ -158,12 +136,11 @@ class MainActivity : AppCompatActivity() {
             override fun onMapReady(kakaoMap: KakaoMap) {
                 this@MainActivity.kakaoMap = kakaoMap
                 labelLayer = kakaoMap.labelManager?.layer!!
-                loadLastMarkerPosition()  // 마지막 마커 위치 불러오기
+                loadLastMarkerPosition()
             }
         })
     }
 
-    // 결과 반환
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == SEARCH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
@@ -172,7 +149,6 @@ class MainActivity : AppCompatActivity() {
                 val roadAddressName = it.getStringExtra("road_address_name")
                 val x = it.getDoubleExtra("x", 0.0)
                 val y = it.getDoubleExtra("y", 0.0)
-                // 다시 돌아갈 때 저장된 검색어 확인
                 selectedItems.clear()
                 val selectedItemsSize = it.getIntExtra("selectedItemsSize", 0)
                 for (i in 0 until selectedItemsSize) {
@@ -184,8 +160,6 @@ class MainActivity : AppCompatActivity() {
                     val y = it.getDoubleExtra("y_$i", 0.0)
                     selectedItems.add(MapItem(id, place_name, road_address_name, category_group_name, x, y))
                 }
-
-                //마커 위치 저장
                 addLabel(placeName, roadAddressName, x, y)
                 if (placeName != null && roadAddressName != null) {
                     saveLastMarkerPosition(x, y, placeName, roadAddressName)
@@ -194,7 +168,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // label marker
     private fun addLabel(placeName: String?, roadAddressName: String?, x: Double, y: Double) {
         if (placeName != null && roadAddressName != null) {
             val position = LatLng.from(y, x)
@@ -206,18 +179,11 @@ class MainActivity : AppCompatActivity() {
                         .setZoomLevel(1)
                 )
             )
-
             labelLayer.addLabel(
                 LabelOptions.from(placeName, position).setStyles(styles).setTexts(placeName)
             )
-
-            // 카메라 이동
             moveCamera(position)
-
-            // 마커 위치 저장
             saveLastMarkerPosition(x, y, placeName, roadAddressName)
-
-            // bottom sheet 업데이트
             updateBottomSheet(placeName, roadAddressName)
         }
     }
@@ -240,7 +206,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //마커 다시 로드하기
     fun loadLastMarkerPosition() {
         val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         if (sharedPreferences.contains(PREF_LATITUDE) && sharedPreferences.contains(PREF_LONGITUDE)) {
@@ -248,7 +213,6 @@ class MainActivity : AppCompatActivity() {
             val longitude = sharedPreferences.getFloat(PREF_LONGITUDE, 0.0f).toDouble()
             val placeName = sharedPreferences.getString(PREF_PLACE_NAME, "") ?: ""
             val roadAddressName = sharedPreferences.getString(PREF_ROAD_ADDRESS_NAME, "") ?: ""
-
             if (placeName.isNotEmpty() && roadAddressName.isNotEmpty()) {
                 Log.d("MainActivity", "Loaded last marker position: lat=$latitude, lon=$longitude, placeName=$placeName, roadAddressName=$roadAddressName")
                 addLabel(placeName, roadAddressName, longitude, latitude)
@@ -263,7 +227,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //재실행시 bottomsheet 나타나는 거 방지
     private fun updateBottomSheet(placeName: String, roadAddressName: String) {
         bottomSheetTitle.text = placeName
         bottomSheetAddress.text = roadAddressName
