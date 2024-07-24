@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "MapItem")
 data class MapItem(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: String,
     val place_name: String,
     val road_address_name: String,
     val category_group_name: String,

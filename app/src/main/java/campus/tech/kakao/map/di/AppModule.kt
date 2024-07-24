@@ -4,15 +4,10 @@ import android.content.Context
 import androidx.room.Room
 import campus.tech.kakao.map.database.AppDatabase
 import campus.tech.kakao.map.database.MapItemDao
-import campus.tech.kakao.map.network.KakaoApiService
-import campus.tech.kakao.map.network.RetrofitInstance
-import campus.tech.kakao.map.repository.MapRepository
-import campus.tech.kakao.map.repository.MapRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Singleton
 
 @Module
@@ -21,7 +16,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase {
+    fun provideDatabase(appContext: Context): AppDatabase {
         return Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
@@ -30,23 +25,7 @@ object AppModule {
     }
 
     @Provides
-    @Singleton
-    fun provideMapItemDao(db: AppDatabase): MapItemDao {
-        return db.mapItemDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideKakaoApiService(): KakaoApiService {
-        return RetrofitInstance.api
-    }
-
-    @Provides
-    @Singleton
-    fun provideMapRepository(
-        mapItemDao: MapItemDao,
-        apiService: KakaoApiService
-    ): MapRepository {
-        return MapRepositoryImpl(mapItemDao, apiService)
+    fun provideMapItemDao(database: AppDatabase): MapItemDao {
+        return database.mapItemDao()
     }
 }

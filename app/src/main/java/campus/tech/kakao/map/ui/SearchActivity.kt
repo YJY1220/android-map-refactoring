@@ -90,6 +90,7 @@ class SearchActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+
     }
 
     private fun setupClearTextButton() {
@@ -124,7 +125,7 @@ class SearchActivity : AppCompatActivity() {
             putExtra("y", selectedItem.y)
             putExtra("selectedItemsSize", viewModel.selectedItems.value?.size ?: 0)
             viewModel.selectedItems.value?.forEachIndexed { index, item ->
-                putExtra("id_$index", item.id)  // Int 타입으로 넣기
+                putExtra("id_$index", item.id)
                 putExtra("place_name_$index", item.place_name)
                 putExtra("road_address_name_$index", item.road_address_name)
                 putExtra("category_group_name_$index", item.category_group_name)

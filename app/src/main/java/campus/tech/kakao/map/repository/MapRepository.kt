@@ -5,6 +5,7 @@ import campus.tech.kakao.map.network.KakaoApiService
 import campus.tech.kakao.map.model.MapItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.app.Application
 import javax.inject.Inject
 
 interface MapRepository {

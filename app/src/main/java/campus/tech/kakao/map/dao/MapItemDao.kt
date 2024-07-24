@@ -7,6 +7,7 @@ import campus.tech.kakao.map.model.MapItem
 
 @Dao
 interface MapItemDao {
+
     @Insert
     suspend fun insert(mapItem: MapItem)
 

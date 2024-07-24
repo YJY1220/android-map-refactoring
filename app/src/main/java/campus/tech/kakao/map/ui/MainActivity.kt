@@ -7,28 +7,24 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import com.kakao.vectormap.MapView
-import com.kakao.vectormap.MapLifeCycleCallback
-import com.kakao.vectormap.KakaoMapReadyCallback
-import com.kakao.vectormap.KakaoMap
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.kakao.vectormap.*
 import campus.tech.kakao.map.R
 import campus.tech.kakao.map.model.MapItem
 import campus.tech.kakao.map.viewmodel.MapViewModel
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.camera.CameraAnimation
+import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.LabelLayer
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import com.kakao.vectormap.label.LabelTextStyle
-import com.kakao.vectormap.camera.CameraAnimation
-import com.kakao.vectormap.camera.CameraUpdateFactory
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -162,12 +158,11 @@ class MainActivity : AppCompatActivity() {
                 val roadAddressName = it.getStringExtra("road_address_name")
                 val x = it.getDoubleExtra("x", 0.0)
                 val y = it.getDoubleExtra("y", 0.0)
-
                 // 다시 돌아갈 때 저장된 검색어 확인
                 selectedItems.clear()
                 val selectedItemsSize = it.getIntExtra("selectedItemsSize", 0)
                 for (i in 0 until selectedItemsSize) {
-                    val id = it.getIntExtra("id_$i", 0)  // getIntExtra로 수정
+                    val id = it.getIntExtra("id_$i",0)
                     val place_name = it.getStringExtra("place_name_$i") ?: ""
                     val road_address_name = it.getStringExtra("road_address_name_$i") ?: ""
                     val category_group_name = it.getStringExtra("category_group_name_$i") ?: ""
@@ -176,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                     selectedItems.add(MapItem(id, place_name, road_address_name, category_group_name, x, y))
                 }
 
-                // 마커 위치 저장
+                //마커 위치 저장
                 addLabel(placeName, roadAddressName, x, y)
                 if (placeName != null && roadAddressName != null) {
                     saveLastMarkerPosition(x, y, placeName, roadAddressName)

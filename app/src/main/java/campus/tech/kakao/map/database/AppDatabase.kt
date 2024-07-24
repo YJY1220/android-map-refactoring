@@ -8,4 +8,3 @@ import campus.tech.kakao.map.model.MapItem
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mapItemDao(): MapItemDao
 }
-
